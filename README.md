@@ -1,3 +1,5 @@
+<img src="./figure6.png" width="400px"></img>
+
 ## Gradient Agreement Filtering (microbatch) - Pytorch
 
 Implementation of [Gradient Agreement Filtering](https://arxiv.org/abs/2412.18052), from Chaubard et al. of Stanford, but for single machine microbatches, in Pytorch.
