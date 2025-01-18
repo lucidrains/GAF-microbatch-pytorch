@@ -52,6 +52,21 @@ out.sum().backward()
 
 ```
 
+You can supply your own gradient filtering method as a `Callable[[Tensor], Tensor]` with the `filter_gradients_fn` kwarg as so
+
+```python
+
+def filtering_fn(grads):
+    # make your big discovery here
+    return grads
+ 
+gaf_net = GAFWrapper(
+    net = net,
+    filter_gradients_fn = filtering_fn
+)
+
+```
+
 ## Todo
 
 - [ ] replicate cifar results on single machine
