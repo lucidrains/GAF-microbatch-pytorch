@@ -55,6 +55,7 @@ out.sum().backward()
 ## Todo
 
 - [ ] replicate cifar results on single machine
+- [ ] allow for excluding certain parameters from being filtered
 
 ## Citations
 
