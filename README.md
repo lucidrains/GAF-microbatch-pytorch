@@ -70,7 +70,7 @@ gaf_net = GAFWrapper(
 ## Todo
 
 - [ ] replicate cifar results on single machine
-- [ ] allow for excluding certain parameters from being filtered
+- [x] allow for excluding certain parameters from being filtered
 
 ## Citations
 

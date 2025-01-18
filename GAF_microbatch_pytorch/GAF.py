@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from functools import partial
 from typing import Literal, Callable
+from collections.abc import Sequence
 
 import torch
 from torch import nn
@@ -102,6 +103,7 @@ class GAF(Function):
         net = package['net']
         params, buffers = package['params_buffers']
         filter_gradients_fn = package['filter_gradients_fn']
+        exclude_from_filtering = package['exclude_from_filtering']
         inp_tensor, args, kwargs = package['inputs']
 
         batch = inp_tensor.shape[0]
@@ -115,28 +117,54 @@ class GAF(Function):
 
         output, vjpfunc = vjp(fn, params, buffers, inp_tensor)
 
-        ctx._saved_info_for_backwards = (vjpfunc, filter_gradients_fn, args, kwargs)
+        ctx._saved_info_for_backwards = (
+            vjpfunc,
+            filter_gradients_fn,
+            args,
+            kwargs,
+            exclude_from_filtering
+        )
+
         return output
 
     @classmethod
     def backward(self, ctx, do):
 
-        vjp_func, filter_gradients_fn, args, kwargs = ctx._saved_info_for_backwards
+        (
+            vjp_func,
+            filter_gradients_fn,
+            args,
+            kwargs,
+            exclude_from_filtering
+        ) = ctx._saved_info_for_backwards
 
         dparams, dbuffers, dinp = vjp_func(do)
 
-        filtered_dparams = {name: filter_gradients_fn(dparam) for name, dparam in dparams.items()}
+        # filter gradients for each parameter tensor
+        # unless it is in `exclude_from_filtering`
+
+        filtered_dparams = dict()
+
+        for name, dparam in dparams.items():
+            if name in exclude_from_filtering:
+                filtered_dparams[name] = dparam
+                continue
+
+            filtered_dparams[name] = filter_gradients_fn(dparam)
+
+        # tree flatten back out
 
         package = dict(
             net = None,
             params_buffers = (filtered_dparams, dbuffers),
-            inputs = (dinp, None, None)
+            inputs = (dinp, None, None),
+            filter_gradients_fn = None,
+            exclude_from_filtering = None
         )
 
         tree_nodes, _ = tree_flatten(package)
 
-        output = (None, *tree_nodes)
-        return output
+        return (None, *tree_nodes)
 
 gaf_function = GAF.apply
 
@@ -151,11 +179,14 @@ class GAFWrapper(Module):
         net: Module,
         filter_distance_thres = 0.97,
         filter_gradients = True,
-        filter_gradients_fn: Callable | None = None
+        filter_gradients_fn: Callable | None = None,
+        exclude_from_filtering: Sequence[str] = ()
     ):
         super().__init__()
 
         self.net = net
+
+        self.exclude_from_filtering = set(exclude_from_filtering)
 
         # gradient agreement filtering related
 
@@ -185,7 +216,8 @@ class GAFWrapper(Module):
             net = self.net,
             params_buffers = (params, buffers),
             inputs = (inp_tensor, args, kwargs),
-            filter_gradients_fn = self.filter_gradients_fn
+            filter_gradients_fn = self.filter_gradients_fn,
+            exclude_from_filtering = self.exclude_from_filtering
         )
 
         tree_nodes, tree_spec = tree_flatten(package)
