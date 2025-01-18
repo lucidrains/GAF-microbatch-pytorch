@@ -1,12 +1,10 @@
 <img src="./figure6.png" width="400px"></img>
 
-## Gradient Agreement Filtering (microbatch) - Pytorch
+## Gradient Agreement Filtering - Pytorch (wip)
 
-Implementation of [Gradient Agreement Filtering](https://arxiv.org/abs/2412.18052), from Chaubard et al. of Stanford, but for single machine microbatches, in Pytorch.
+Implementation of [Gradient Agreement Filtering](https://arxiv.org/abs/2412.18052), from Chaubard et al. of Stanford, but done for single machine microbatches, in Pytorch.
 
-Whether it is just a means to filter out outlier label noise, or actually has some ties to better generalization, thought it was worth exploring either way.
-
-The official repository that does filtering done for macrobatches is [here](https://github.com/Fchaubard/gradient_agreement_filtering)
+The official repository that does filtering for macrobatches across machines is [here](https://github.com/Fchaubard/gradient_agreement_filtering)
 
 ## Install
 
@@ -53,6 +51,10 @@ out.sum().backward()
 # gradients should be filtered by set threshold comparing per sample gradients within batch, as in paper
 
 ```
+
+## Todo
+
+- [ ] replicate cifar results on single machine
 
 ## Citations
 
