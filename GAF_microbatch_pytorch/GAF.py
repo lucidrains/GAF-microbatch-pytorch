@@ -224,3 +224,20 @@ class GAFWrapper(Module):
 
         out = gaf_function(tree_spec, *tree_nodes)
         return out
+
+# helper functions for disabling GAF wrappers within a network
+# for handy ablation, in the case subnetworks within a neural network were wrapped
+
+def set_filter_gradients_(
+    m: Module,
+    filter_gradients: bool,
+    filter_distance_thres = None
+):
+    for module in m.modules():
+        if not isinstance(module, GAFWrapper):
+            continue
+
+        module.filter_gradients = filter_gradients
+
+        if exists(filter_distance_thres):
+            module.filter_distance_thres = filter_distance_thres
