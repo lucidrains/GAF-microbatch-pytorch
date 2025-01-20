@@ -185,6 +185,7 @@ class GAFWrapper(Module):
         super().__init__()
 
         self.net = net
+        assert not any([m for m in net.modules() if isinstance(m, GAFWrapper)]), 'GAF wrapper cannot contain another network that is already wrapped'
 
         self.exclude_from_filtering = set(exclude_from_filtering)
 
