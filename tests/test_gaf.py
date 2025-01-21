@@ -7,7 +7,7 @@ torch.set_default_dtype(torch.float64)
 
 from GAF_microbatch_pytorch import GAFWrapper, set_filter_gradients_
 
-def test_gaf():
+def test_unfiltered_gaf():
 
     net = nn.Sequential(
         nn.Linear(512, 256),
@@ -47,7 +47,7 @@ def test_gaf():
 
     gaf_net = GAFWrapper(
         deepcopy(net),
-        filter_distance_thres = 0.
+        filter_distance_thres = 0.7
     )
 
     x = torch.randn(8, 1024, 512)
@@ -65,4 +65,27 @@ def test_gaf():
     grad = net[0].weight.grad
     grad_filtered = gaf_net.net[0].weight.grad
 
-    assert not torch.allclose(grad, grad_filtered, atol = 1e-6)
+    assert not (grad_filtered == 0.).all() and not torch.allclose(grad, grad_filtered, atol = 1e-6)
+
+def test_all_filtered_gaf():
+
+    net = nn.Sequential(
+        nn.Linear(512, 256),
+        nn.SiLU(),
+        nn.Linear(256, 128)
+    )
+
+    gaf_net = GAFWrapper(
+        deepcopy(net),
+        filter_distance_thres = 0.
+    )
+
+    x = torch.randn(8, 1024, 512)
+    x.requires_grad_()
+
+    out = gaf_net(x)
+    out.sum().backward()
+
+    grad_filtered = gaf_net.net[0].weight.grad
+
+    assert (grad_filtered == 0.).all()

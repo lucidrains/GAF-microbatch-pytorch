@@ -73,7 +73,7 @@ def filter_gradients_by_agreement(
     else:
         raise ValueError(f'unknown strategy {strategy}')
 
-    if not accept_mask.any():
+    if accept_mask.sum().item() <= 1:
         return torch.zeros_like(grads)
 
     if accept_mask.all():
