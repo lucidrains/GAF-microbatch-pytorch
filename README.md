@@ -67,6 +67,18 @@ gaf_net = GAFWrapper(
 
 ```
 
+To set all `GAFWrapper` states within a network, use `set_filter_gradients_`
+
+```python
+from GAF_microbatch_pytorch import set_filter_gradients_
+
+set_filter_gradients_(net, False) # turning on / off
+
+# or perhaps filter thresholds on some schedule
+
+set_filter_gradients_(net, True, 0.98)
+```
+
 ## Todo
 
 - [ ] replicate cifar results on single machine
